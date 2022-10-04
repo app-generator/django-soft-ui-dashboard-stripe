@@ -292,7 +292,7 @@
             e.preventDefault()
             const formData = new FormData(e.target)
 
-            fetch(`/ecommerce/products/${deleteId}/`,{
+            fetch(`/ecommerce/admin/products/${deleteId}/`,{
                 method: 'DELETE',
                 headers: {"X-CSRFToken": formData.get("csrfmiddlewaretoken")}
             })
@@ -318,7 +318,7 @@
             formData.forEach((value , key) => {
                 data[key] = value
             })
-            fetch(`/ecommerce/products/${editId}/`, {
+            fetch(`/ecommerce/admin/products/${editId}/`, {
                 method: 'PUT',
                 body: JSON.stringify(data),
                 headers: {
@@ -345,7 +345,7 @@
             e.preventDefault()
             const formData = new FormData(e.target)
 
-            fetch(`/ecommerce/products/`, {
+            fetch(`/ecommerce/admin/products/`, {
                 method: 'POST',
                 body: formData,
                 headers: {

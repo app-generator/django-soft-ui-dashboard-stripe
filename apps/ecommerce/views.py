@@ -16,7 +16,7 @@ from apps.ecommerce.models import Products, Sales
 class AdminSalesView(views.View):
 
     def get(self, request):
-        sales = Sales.objects.all()
+        sales = Sales.objects.all().order_by("-timestamp")
         return render(request, "sales/datatable.html", context={
             "sales": sales
         })
@@ -40,11 +40,7 @@ class AdminSalesView(views.View):
 
 class AdminProductsView(views.View):
 
-    def get(self, request, product_id=None):
-        if product_id:
-            return render(request, "", context={
-                "product": Products.objects.get(id=product_id),
-            })
+    def get(self, request):
         form = ProductForm()
         products = Products.objects.all()
         return render(request, "products/datatable.html", context={
@@ -121,6 +117,7 @@ def create_checkout_session(request):
                 cancel_url=domain_url + reverse("stripe-cancelled"),
                 payment_method_types=['card'],
                 mode='payment',
+                client_reference_id=request.user.id if request.user.is_authenticated else None,
                 line_items=[
                     {
                         "price": product.stripe_price_id,
@@ -134,19 +131,6 @@ def create_checkout_session(request):
 
 
 def success(request):
-    session_id = request.GET.get("session_id")
-    session = stripe.checkout.Session.list_line_items(session_id)
-    for line_item in session.data:
-        product = Products.objects.filter(stripe_product_id=line_item.price.product).first()
-        if product is None:
-            continue
-        sale = Sales.objects.create(
-            product=product,
-            value=product.price * line_item.quantity,
-            fees=product.price,
-            quantity=line_item.quantity,
-            client=request.user
-        )
     return render(request, "ecommerce/success.html")
 
 
@@ -172,6 +156,19 @@ def stripe_webhook(request):
         return HttpResponse(status=400)
 
     if event['type'] == 'checkout.session.completed':
+        session_id = event.data.object.stripe_id
+        session = stripe.checkout.Session.list_line_items(session_id)
+        for line_item in session.data:
+            product = Products.objects.filter(stripe_product_id=line_item.price.product).first()
+            if product is None:
+                continue
+            sale = Sales.objects.create(
+                product=product,
+                value=product.price * line_item.quantity,
+                fees=product.price,
+                quantity=line_item.quantity,
+                client_id=event.data.object.client_reference_id
+            )
         print("Payment was successful.")
         # TODO: run some custom code here
 
@@ -181,12 +178,13 @@ def stripe_webhook(request):
 class ProductsView(views.View):
 
     def get(self, request, product_id=None):
-        if product_id:
-            return render(request, "", context={
-                "product": Products.objects.get(id=product_id),
-            })
         products = Products.objects.all()
-        return render(request, "", context={
+        if product_id:
+            return render(request, "products/product.html", context={
+                "product": products.get(id=product_id),
+                "products": products
+            })
+        return render(request, "products/product.html", context={
             "products": products
         })
 

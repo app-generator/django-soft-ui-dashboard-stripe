@@ -1,0 +1,92 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Products {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <div class="container py-4">
+        {% if product %}
+            <div class="d-flex justify-content-center align-items-center min-vh-85">
+            <div class="col-lg-10 col-md-12 d-flex gap-3">
+                <div class="d-flex flex-column col-7">
+                    <div><h3 class="fw-bold display-3">{{ product.name }}</h3></div>
+                    <div class="flex-grow-1"><p class="text-justify fs-5"> {{ product.info }} </p></div>
+                    <div>
+                        <button id="buy-btn" class="btn btn-primary"> BUY {{ product.price }} $ </button>
+                    </div>
+                </div>
+                <div class="col-5 align-items-center d-flex">
+                    <img class="w-100 border-radius-lg shadow"
+                               src="{{ ASSETS_ROOT }}/img/team-1.jpg">
+                </div>
+            </div>
+            </div>
+        {% endif %}
+        <div class="d-flex flex-column">
+            <h3>Latest Products</h3>
+            <div class="d-flex justify-content-center flex-wrap gap-4">
+                {% for product in products %}
+                  <div class="col-lg-3 col-sm-6">
+                    <div class="card card-plain card-blog h-100">
+                      <div class="card-image border-radius-lg position-relative">
+                        <a href="/ecommerce/products/{{ product.id }}/">
+                          <img class="w-100 border-radius-lg move-on-hover shadow"
+                               src="{{ ASSETS_ROOT }}/img/team-1.jpg">
+                        </a>
+                      </div>
+                      <div class="card-body px-0">
+                        <h5>
+                          <a href="/ecommerce/products/{{ product.id }}/" class="text-dark font-weight-bold">
+                            {{ product.name }} - ${{ product.price }}
+                          </a>
+                        </h5>
+                        <p class="text-justify">
+                          {{ product.info }}
+                        </p>
+                      </div>
+                        <div class="card-footer">
+                            <a href="/ecommerce/products/{{ product.id }}/" class="text-info icon-move-right">
+                              See Product
+                              <i class="fas fa-arrow-right text-sm"></i>
+                            </a>
+                        </div>
+                    </div>
+                  </div>
+
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block javascripts %}
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        fetch("/ecommerce/config/")
+            .then((result) => {
+              return result.json();
+            })
+            .then((data) => {
+              // Initialize Stripe.js
+              const stripe = Stripe(data.publicKey);
+              document.querySelector("#buy-btn").addEventListener("click", () => {
+                // Get Checkout Session ID
+                fetch("/ecommerce/create-checkout-session/?product={{ product.id }}&quantity=1")
+                .then((result) => {
+                  return result.json();
+                })
+                .then((data) => {
+                  console.log(data);
+                  // Redirect to Stripe Checkout
+                  return stripe.redirectToCheckout({sessionId: data.sessionId})
+                })
+                .then((res) => {
+                  console.log(res);
+                });
+              });
+            });
+    </script>
+{% endblock javascripts %}

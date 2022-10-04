@@ -152,7 +152,7 @@
             formData.forEach((value , key) => {
                 data[key] = value
             })
-            fetch(`/ecommerce/sales/${editId}/`,{
+            fetch(`/ecommerce/admin/sales/${editId}/`,{
                 method: 'PUT',
                 body: JSON.stringify(data),
                 headers: {
