@@ -1,22 +1,30 @@
 # eCommerce Stripe Integration
 
-@ToDo - general information
+Stripe integration has been added to the project with admin and user panels.
 
 ## APP Configuration
 
-@ToDo
+add 2 environment variables to `.env` file with these names:
+```text
+STRIPE_PUBLISHABLE_KEY=<Insert-from-stripe-dashboard>
+STRIPE_SECRET_KEY=<Insert-from-stripe-dashboard>
+```
 
 ## Stripe Configuration
 
-@ToDo
+1. add products to stripe dashboard
+2. copy `product_id` and `price_id` of stripe product
+3. go to product admin page and add a product
+4. paste copied ids to this product fields.
 
-## Routes
+## Routes and Pages
 
-@ToDo
+`/ecommerce/ecommerce/admin/products/` : Add, Update and delete products from app (product admin page)
 
-## Pages
+`/ecommerce/ecommerce/admin/sales/` : See succeed pays
 
-@ToDo
+`/ecommerce/ecommerce/products/` : Shopping page
+
 
 ## How to use the feature
 
