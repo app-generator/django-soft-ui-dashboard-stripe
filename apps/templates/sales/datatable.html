@@ -1,0 +1,178 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} API Sample {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <div class="container-fluid py-4">
+
+        <div class="col-lg-12 mb-lg-0 mb-4">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+                <div class="col-12">
+                  <div class="card mb-4">
+                    <div class="card-header pb-0">
+                      <h6>Sales</h6>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                      <div class="table-responsive p-0">
+                          <table class="table"></table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+        {% include "includes/footer.html" %}
+    </div>
+
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="update-form" method="post">{% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+          <div class="modal-body">
+
+              <label>Product</label>
+              <div class="mb-3">
+                <input name="product" class="form-control" id="product"/>
+              </div>
+
+              <label>Value</label>
+              <div class="mb-3">
+                <input name="value" class="form-control" id="value"/>
+              </div>
+
+              <label>Fees</label>
+              <div class="mb-3">
+                  <input name="fees" class="form-control" id="fees"/>
+              </div>
+
+              <label>Quantity</label>
+              <div class="mb-3">
+                <input name="quantity" class="form-control" id="quantity"/>
+              </div>
+
+              <label>Timestamp</label>
+              <div class="mb-3">
+                  <input name="timestamp" class="form-control" id="timestamp"/>
+              </div>
+
+              <label>Client</label>
+              <div class="mb-3">
+                  <input name="client" class="form-control" id="client"/>
+              </div>
+
+              <label>Note</label>
+              <div class="mb-3">
+                   <textarea name="note" cols="40" rows="10" class="form-control" required="" id="note"></textarea>
+              </div>
+        </div>
+
+       <p class="text-danger" id="edit-error"></p>
+
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <input type="submit" class="btn btn-primary" value="Save changes">
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+    <script>
+
+        const data = [
+            {% for sale in sales %}
+                {'id': '{{ sale.id }}',
+                'product': '{{ sale.product.name }}',
+                'value': '{{ sale.value }}' ,
+                'fees': '{{ sale.fees }}' ,
+                'quantity': '{{ sale.quantity }}' ,
+                'timestamp': '{{ sale.timestamp }}' ,
+                'client': '{{ sale.client }}' ,
+                'note': '{{ sale.note }}' },
+            {% endfor %}
+        ]
+
+        let myData  = data.map((d) => Object.keys(d).map((key) => d[key]))
+        const heading = Object.keys(data[0])
+        myData = myData.map((d) => [...d,`
+        <a href="javascript:;" class="text-secondary font-weight-bold text-xs" data-toggle="tooltip" data-original-title="Edit user">
+            <i id="edit-item" data-bs-toggle="modal" data-bs-target="#updateModal"
+               data-product-id="${ d[0] }" class="fa fa-edit"></i>
+        </a>
+        `])
+        // table
+        const dataTable = new simpleDatatables.DataTable(".table",{data:
+        {
+            headings: [...heading,''],
+            data: myData,
+        }
+    });
+
+
+        let deleteId = ''
+        let editId = ''
+        document.querySelector('.table').onclick = (e) => {
+            if (e.target.id === 'edit-item') {
+                editId = e.target.getAttribute("data-product-id")
+                setEditFormValues(editId)
+            }
+        }
+
+        const setEditFormValues = (id) => {
+            const rowData = data.filter((item) => item.id === id )[0]
+            Object.keys(rowData).map((key) => {
+                if (key !== 'id')
+                    document.getElementById(key).value = rowData[key]
+            })
+        }
+
+        document.getElementById('update-form').onsubmit = (e) => {
+            e.preventDefault()
+            const formData = new FormData(e.target)
+            const data = {}
+            formData.forEach((value , key) => {
+                data[key] = value
+            })
+            fetch(`/ecommerce/sales/${editId}/`,{
+                method: 'PUT',
+                body: JSON.stringify(data),
+                headers: {
+                    "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+                    "Content-Type": 'application/json'
+                }
+            })
+                .then((response) => {
+                    if(!response.ok)
+                        return response.text().then(text => { throw new Error(text) })
+                    else
+                        return response.json()
+                })
+                .then((res) => {
+                    console.log(res)
+                    location.reload()
+                })
+                .catch((err) => {
+                    document.getElementById('edit-error').textContent = err
+                })
+        }
+    </script>
+{% endblock javascripts %}
