@@ -7,7 +7,7 @@ PAYMENT_CHOICES = (
 )
 
 CURRENCY_CHOICES = (
-    ("USD", "USA Dollar"),
+    ("usd", "USA Dollar"),
 )
 
 
@@ -17,9 +17,10 @@ class Products(models.Model):
     info = models.TextField(null=True, blank=True)
     full_description = models.TextField(null=True, blank=True)
     stripe_price_id = models.CharField(max_length=63)
-    price = models.FloatField()
-    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default="USD")
+    price = models.FloatField(default=0)
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default="usd")
     payment = models.IntegerField(choices=PAYMENT_CHOICES, default=0)
+    image_url = models.URLField(null=True, blank=True, default=None)
 
 
 class Sales(models.Model):
@@ -30,4 +31,4 @@ class Sales(models.Model):
     timestamp = models.DateTimeField(auto_now=True)
     client = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     note = models.TextField()
-
+    is_successful = models.BooleanField(default=False)

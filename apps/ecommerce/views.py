@@ -1,3 +1,4 @@
+import datetime
 import json
 from http import HTTPStatus
 
@@ -112,6 +113,13 @@ def create_checkout_session(request):
             return JsonResponse({'error': str(e)})
 
         try:
+            sale = Sales.objects.create(
+                product=product,
+                value=product.price * quantity,
+                fees=product.price,
+                quantity=quantity,
+                client_id=request.user
+            )
             checkout_session = stripe.checkout.Session.create(
                 success_url=domain_url + f'{reverse("stripe-success")}?session_id={{CHECKOUT_SESSION_ID}}',
                 cancel_url=domain_url + reverse("stripe-cancelled"),
@@ -123,7 +131,10 @@ def create_checkout_session(request):
                         "price": product.stripe_price_id,
                         "quantity": quantity
                     }
-                ]
+                ],
+                metadata={
+                    "sale_id": sale.id
+                }
             )
             return JsonResponse({'sessionId': checkout_session['id']})
         except Exception as e:
@@ -156,21 +167,41 @@ def stripe_webhook(request):
         return HttpResponse(status=400)
 
     if event['type'] == 'checkout.session.completed':
-        session_id = event.data.object.stripe_id
-        session = stripe.checkout.Session.list_line_items(session_id)
-        for line_item in session.data:
-            product = Products.objects.filter(stripe_product_id=line_item.price.product).first()
-            if product is None:
-                continue
-            sale = Sales.objects.create(
-                product=product,
-                value=product.price * line_item.quantity,
-                fees=product.price,
-                quantity=line_item.quantity,
-                client_id=event.data.object.client_reference_id
-            )
+        sale_id = event.data.object.metadata.sale_id
+
+        # Convert from unsuccessful payment to successful
+        Sales.objects.filter(id=sale_id).bulk_update(is_successful=True, timestamp=datetime.datetime.now())
+
         print("Payment was successful.")
-        # TODO: run some custom code here
+    if event['type'] == 'product.created':
+        product = event.data.object
+        product = Products.objects.create(
+            stripe_product_id=product.stripe_id,
+            name=product.name,
+            full_description=product.description,
+            info=product.description,
+            payment=0 if product.type == 'one_time' else 1,
+            image_url=product.images[0]
+        )
+
+        print(f'{product.name} created.')
+    if event['type'] == 'product.updated':
+        product = event.data.object
+        if product.default_price is not None:
+
+            price = stripe.Price.retrieve(
+                product.default_price,
+            )
+            Products.objects.filter(stripe_product_id=product.stripe_id).update(
+                stripe_price_id=product.default_price,
+                price=float(price.unit_amount_decimal)/100,
+                currency=price.currency,
+                stripe_product_id=product.stripe_id,
+                name=product.name,
+                full_description=product.description,
+                info=product.description,
+            )
+
 
     return HttpResponse(status=200)
 
