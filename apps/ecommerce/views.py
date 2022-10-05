@@ -188,20 +188,18 @@ def stripe_webhook(request):
     if event['type'] == 'product.updated':
         product = event.data.object
         if product.default_price is not None:
-
             price = stripe.Price.retrieve(
                 product.default_price,
             )
             Products.objects.filter(stripe_product_id=product.stripe_id).update(
                 stripe_price_id=product.default_price,
-                price=float(price.unit_amount_decimal)/100,
+                price=float(price.unit_amount_decimal) / 100,
                 currency=price.currency,
                 stripe_product_id=product.stripe_id,
                 name=product.name,
                 full_description=product.description,
                 info=product.description,
             )
-
 
     return HttpResponse(status=200)
 
@@ -219,3 +217,21 @@ class ProductsView(views.View):
             "products": products
         })
 
+
+def get_product_data(request, product_stripe_id):
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    product = stripe.Product.retrieve(
+        product_stripe_id,
+    )
+    price = stripe.Price.retrieve(
+        product.default_price,
+    )
+    return JsonResponse(data={
+        "stripe_price_id": product.default_price,
+        "name": product.name,
+        "price": float(price.unit_amount_decimal) / 100,
+        "currency": price.currency,
+        "info": product.description,
+        "full_description": product.description,
+        "payment": 0 if price.type == 'one_time' else 1
+    }, status=200)

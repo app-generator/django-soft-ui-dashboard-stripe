@@ -7,7 +7,9 @@ from apps.ecommerce.views import (
     create_checkout_session,
     success,
     cancelled,
-    stripe_webhook, AdminSalesView
+    stripe_webhook,
+    AdminSalesView,
+    get_product_data
 )
 
 urlpatterns = [
@@ -24,6 +26,7 @@ urlpatterns = [
     path("create-checkout-session/", create_checkout_session),
     path("success/", success, name="stripe-success"),
     path("cancelled/", cancelled, name="stripe-cancelled"),
-    path('webhook/', stripe_webhook)
+    path('webhook/', stripe_webhook),
+    path('products/stripe_data/<str:product_stripe_id>/', get_product_data)
 
 ]
