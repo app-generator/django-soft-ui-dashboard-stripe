@@ -163,6 +163,21 @@
       </div>
            <div class="modal-body">
 
+             <label>Stripe Product Id</label>
+              <div class="input-group mb-3">
+                <input name="stripe_product_id" class="form-control" id="stripe_product_id"/>
+                  <span id="stripe-id-btn" class="m-0 btn btn-outline-secondary">
+                      <i class="fa fa-download"></i>
+                  </span>
+              </div>
+            <span class="text-danger">{{ form.strip_product_id.errors }}</span>
+
+              <label>Stripe Price Id</label>
+              <div class="mb-3">
+                <input name="stripe_price_id" class="form-control" id="stripe_price_id"/>
+              </div>
+              <span class="text-danger">{{ form.stripe_price_id.errors }}</span>
+
               <label>Name</label>
               <div class="mb-3">
                 <input name="name" class="form-control" id="name"/>
@@ -192,27 +207,15 @@
               </div>
               <span class="text-danger">{{ form.payment.errors }}</span>
 
-              <label>Stripe Product Id</label>
-              <div class="mb-3">
-                <input name="stripe_product_id" class="form-control" id="stripe_product_id"/>
-              </div>
-              <span class="text-danger">{{ form.strip_product_id.errors }}</span>
-
-              <label>Stripe Price Id</label>
-              <div class="mb-3">
-                <input name="stripe_price_id" class="form-control" id="stripe_price_id"/>
-              </div>
-              <span class="text-danger">{{ form.stripe_price_id.errors }}</span>
-
               <label>Info</label>
               <div class="mb-3">
-                <textarea name="info" cols="40" rows="10" class="form-control" required="" id="info"></textarea>
+                <textarea name="info" cols="40" rows="10" class="form-control" id="info"></textarea>
               </div>
               <span class="text-danger">{{ form.info.errors }}</span>
 
               <label>Full Description</label>
               <div class="mb-3">
-                <textarea name="full_description" cols="40" rows="10" class="form-control" required="" id="full_description"></textarea>
+                <textarea name="full_description" cols="40" rows="10" class="form-control" id="full_description"></textarea>
               </div>
               <span class="text-danger">{{ form.full_description.errors }}</span>
         </div>
@@ -361,6 +364,34 @@
                 .then((res) => {
                     console.log(res)
                     location.reload()
+                })
+                .catch((err) => {
+                    document.getElementById('create-error').textContent = err
+                })
+        }
+
+        document.getElementById('stripe-id-btn').onclick = (e) => {
+            const formData = new FormData()
+            const stripeId = document.getElementById('stripe_product_id').value
+            formData.append('stripe_product_id',stripeId)
+
+            fetch(``, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+                }
+            })
+                .then((response) => {
+                    if(!response.ok)
+                        return response.text().then(text => { throw new Error(text) })
+                    else
+                        return response.text()
+                })
+                .then((res) => {
+                    Object.keys(res).map((d) => {
+                        document.getElementById(d).value = res[d]
+                    })
                 })
                 .catch((err) => {
                     document.getElementById('create-error').textContent = err
