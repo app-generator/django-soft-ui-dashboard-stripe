@@ -162,9 +162,9 @@ def stripe_webhook(request):
             payload, sig_header, endpoint_secret
         )
     except ValueError as e:
-        return HttpResponse(status=400)
+        return HttpResponse(status=HTTPStatus.BAD_REQUEST)
     except stripe.error.SignatureVerificationError as e:
-        return HttpResponse(status=400)
+        return HttpResponse(status=HTTPStatus.BAD_REQUEST)
 
     if event['type'] == 'checkout.session.completed':
         sale_id = event.data.object.metadata.sale_id
@@ -201,7 +201,7 @@ def stripe_webhook(request):
                 info=product.description,
             )
 
-    return HttpResponse(status=200)
+    return HttpResponse(status=HTTPStatus.OK)
 
 
 class ProductsView(views.View):
@@ -220,12 +220,21 @@ class ProductsView(views.View):
 
 def get_product_data(request, product_stripe_id):
     stripe.api_key = settings.STRIPE_SECRET_KEY
-    product = stripe.Product.retrieve(
-        product_stripe_id,
-    )
-    price = stripe.Price.retrieve(
-        product.default_price,
-    )
+    try:
+        product = stripe.Product.retrieve(
+            product_stripe_id,
+        )
+        price = stripe.Price.retrieve(
+            product.default_price,
+        )
+    except stripe.error.InvalidRequestError as e:
+        return JsonResponse(data={
+            "error": str(e)
+        }, status=HTTPStatus.BAD_REQUEST)
+    except Exception as e:
+        return JsonResponse(data={
+            "error": str(e)
+        }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
     return JsonResponse(data={
         "stripe_price_id": product.default_price,
         "name": product.name,
@@ -234,4 +243,4 @@ def get_product_data(request, product_stripe_id):
         "info": product.description,
         "full_description": product.description,
         "payment": 0 if price.type == 'one_time' else 1
-    }, status=200)
+    }, status=HTTPStatus.OK)
