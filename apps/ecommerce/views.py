@@ -106,11 +106,11 @@ def create_checkout_session(request):
             if not product_pk:
                 raise Exception("product id not provided.")
             product = Products.objects.get(pk=product_pk)
-            quantity = request.GET.get("quantity", 1)
+            quantity = int(request.GET.get("quantity", 1))
             domain_url = 'http://localhost:8000'
             stripe.api_key = settings.STRIPE_SECRET_KEY
         except Exception as e:
-            return JsonResponse({'error': str(e)})
+            return JsonResponse({'error': str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
         try:
             sale = Sales.objects.create(
@@ -118,7 +118,7 @@ def create_checkout_session(request):
                 value=product.price * quantity,
                 fees=product.price,
                 quantity=quantity,
-                client_id=request.user
+                client_id=request.user.id if request.user.is_authenticated else None
             )
             checkout_session = stripe.checkout.Session.create(
                 success_url=domain_url + f'{reverse("stripe-success")}?session_id={{CHECKOUT_SESSION_ID}}',
@@ -170,7 +170,7 @@ def stripe_webhook(request):
         sale_id = event.data.object.metadata.sale_id
 
         # Convert from unsuccessful payment to successful
-        Sales.objects.filter(id=sale_id).bulk_update(is_successful=True, timestamp=datetime.datetime.now())
+        Sales.objects.filter(id=sale_id).update(is_successful=True, timestamp=datetime.datetime.now())
 
         print("Payment was successful.")
     if event['type'] == 'product.created':

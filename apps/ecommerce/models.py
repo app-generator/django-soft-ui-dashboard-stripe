@@ -29,6 +29,6 @@ class Sales(models.Model):
     fees = models.FloatField()
     quantity = models.IntegerField()
     timestamp = models.DateTimeField(auto_now=True)
-    client = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
+    client = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, null=True, blank=True, default=None)
     note = models.TextField()
     is_successful = models.BooleanField(default=False)

@@ -2,7 +2,6 @@ from django.urls import path
 from apps.ecommerce.views import (
     ProductsView,
     AdminProductsView,
-    purchase,
     stripe_config,
     create_checkout_session,
     success,
@@ -21,7 +20,6 @@ urlpatterns = [
     path("products/", ProductsView.as_view()),
     path("products/<int:product_id>/", ProductsView.as_view()),
 
-    path("purchase/", purchase),
     path("config/", stripe_config),
     path("create-checkout-session/", create_checkout_session),
     path("success/", success, name="stripe-success"),
