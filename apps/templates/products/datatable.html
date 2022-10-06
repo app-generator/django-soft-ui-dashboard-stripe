@@ -170,6 +170,7 @@
                       <i class="fa fa-download"></i>
                   </span>
               </div>
+               <p class="text-danger" id="stripe-id-error"></p>
             <span class="text-danger">{{ form.strip_product_id.errors }}</span>
 
               <label>Stripe Price Id</label>
@@ -371,15 +372,12 @@
         }
 
         document.getElementById('stripe-id-btn').onclick = (e) => {
-            const formData = new FormData()
-            const stripeId = document.getElementById('stripe_product_id').value
-            formData.append('stripe_product_id',stripeId)
+            const formData = new FormData(document.getElementById('create-form'))
 
-            fetch(``, {
-                method: 'POST',
-                body: formData,
+            fetch(`/ecommerce/products/stripe_data/${formData.get('stripe_product_id')}/`, {
+                method: 'GET',
                 headers: {
-                    "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+                    "X-CSRFToken": formData.get('csrfmiddlewaretoken')
                 }
             })
                 .then((response) => {
@@ -394,7 +392,7 @@
                     })
                 })
                 .catch((err) => {
-                    document.getElementById('create-error').textContent = err
+                    document.getElementById('stripe-id-error').textContent = err
                 })
         }
     </script>
