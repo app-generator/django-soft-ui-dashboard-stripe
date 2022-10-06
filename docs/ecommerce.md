@@ -19,11 +19,11 @@ STRIPE_SECRET_KEY=<Insert-from-stripe-dashboard>
 
 ## Routes and Pages
 
-`/ecommerce/ecommerce/admin/products/` : Add, Update and delete products from app (product admin page)
+`/ecommerce/admin/products/` : Add, Update and delete products from app (product admin page)
 
-`/ecommerce/ecommerce/admin/sales/` : See succeed pays
+`/ecommerce/admin/sales/` : See succeed pays
 
-`/ecommerce/ecommerce/products/` : Shopping page
+`/ecommerce/products/` : Shopping page
 
 
 ## How to use the feature
