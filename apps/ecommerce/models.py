@@ -32,3 +32,4 @@ class Sales(models.Model):
     client = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, null=True, blank=True, default=None)
     note = models.TextField()
     is_successful = models.BooleanField(default=False)
+    stripe_session = models.CharField(max_length=128, null=True, blank=True)

@@ -1,4 +1,6 @@
 from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
+
 from apps.ecommerce.views import (
     ProductsView,
     AdminProductsView,
@@ -24,7 +26,7 @@ urlpatterns = [
     path("create-checkout-session/", create_checkout_session),
     path("success/", success, name="stripe-success"),
     path("cancelled/", cancelled, name="stripe-cancelled"),
-    path('webhook/', stripe_webhook),
+    path('webhook', csrf_exempt(stripe_webhook)),
     path('products/stripe_data/<str:product_stripe_id>/', get_product_data)
 
 ]

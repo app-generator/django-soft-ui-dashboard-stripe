@@ -136,19 +136,41 @@ def create_checkout_session(request):
                     "sale_id": sale.id
                 }
             )
+
+            # Save session    
+            sale.stripe_session = checkout_session['id']
+            sale.save()
+
+            print(' Sale_ID [' + str(sale.id) +'] -> ' + checkout_session['id'] )
+
             return JsonResponse({'sessionId': checkout_session['id']})
         except Exception as e:
             return JsonResponse({'error': str(e)})
 
 def success(request):
+
+    print(' Payment OK ' )
+    
+    session_id = request.GET.get('session_id')
+    x = Sales.objects.get(stripe_session=session_id)
+
+    if x:
+        x.is_successful = True
+        x.save() 
+            
     return render(request, "ecommerce/success.html")
 
 def cancelled(request):
+
+    print(' Payment Cancelled ' )
+
     return render(request, "ecommerce/cancelled.html")
 
 
 @csrf_exempt
 def stripe_webhook(request):
+
+    print(' <------ WEBHOOK ------> ' )
 
     stripe.api_key  = settings.STRIPE_SECRET_KEY
     endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
@@ -162,8 +184,10 @@ def stripe_webhook(request):
             payload, sig_header, endpoint_secret
         )
     except ValueError as e:
+        print(" Err STRIPE_VALUE_ERROR = " + str( e) )
         return HttpResponse(status=HTTPStatus.BAD_REQUEST)
     except stripe.error.SignatureVerificationError as e:
+        print(" Err STRIPE_SIGNATURE = " + str( e) )
         return HttpResponse(status=HTTPStatus.BAD_REQUEST)
 
     # Payment -> oK
@@ -172,7 +196,11 @@ def stripe_webhook(request):
         sale_id = event.data.object.metadata.sale_id
 
         # Convert from unsuccessful payment to successful
-        Sales.objects.filter(id=sale_id).update(is_successful=True, timestamp=datetime.datetime.now())
+        # Sales.objects.filter(id=sale_id).update(is_successful=True, timestamp=datetime.datetime.now())
+        
+        x = Sales.objects.get(id=sale_id)
+        x.is_successful=True
+        x.save() 
 
         print("Payment was successful.")
 
