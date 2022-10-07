@@ -107,7 +107,7 @@ def create_checkout_session(request):
                 raise Exception("product id not provided.")
             product = Products.objects.get(pk=product_pk)
             quantity = int(request.GET.get("quantity", 1))
-            domain_url = 'http://localhost:8000'
+            domain_url = settings.DOMAIN_URL
             stripe.api_key = settings.STRIPE_SECRET_KEY
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -150,14 +150,14 @@ def create_checkout_session(request):
 def success(request):
 
     print(' Payment OK ' )
-    
+
     session_id = request.GET.get('session_id')
     x = Sales.objects.get(stripe_session=session_id)
 
     if x:
         x.is_successful = True
-        x.save() 
-            
+        x.save()
+
     return render(request, "ecommerce/success.html")
 
 def cancelled(request):
@@ -197,10 +197,10 @@ def stripe_webhook(request):
 
         # Convert from unsuccessful payment to successful
         # Sales.objects.filter(id=sale_id).update(is_successful=True, timestamp=datetime.datetime.now())
-        
+
         x = Sales.objects.get(id=sale_id)
         x.is_successful=True
-        x.save() 
+        x.save()
 
         print("Payment was successful.")
 
@@ -237,7 +237,7 @@ def stripe_webhook(request):
                 info=product.description,
             )
 
-    return HttpResponse(status=HTTPStatus.OK) 
+    return HttpResponse(status=HTTPStatus.OK)
 
 class ProductsView(views.View):
 

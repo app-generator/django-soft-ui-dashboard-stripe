@@ -4,6 +4,7 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 import os, environ
+import sys
 
 env = environ.Env(
     # set casting, default value
@@ -207,6 +208,9 @@ DYNAMIC_DATATB = {
     # Register models below
     'books': "Book",     
 }
+
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", None)
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", None)
 STRIPE_ENDPOINT_SECRET = "whsec_94e7fe1e5776a576dcc6c49c4c7b993f23edeef15f70d29f596c2a1789d64f0e"
+
+DOMAIN_URL = f"{'http' if sys.argv[1] == 'runserver' else 'https'}://localhost:{sys.argv[2]}"
