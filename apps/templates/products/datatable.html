@@ -15,9 +15,9 @@
             <div class="row">
                 <div class="col-12">
                   <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between pb-0">
-                      <h6>Products</h6>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">New</button>
+                    <div class="card-header text-center pb-0">
+                      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+                        New Product</button>
                     </div>
                     <div class="card-body px-0 pt-0 pb-2">
                       <div class="table-responsive p-0">
@@ -30,8 +30,11 @@
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Currency</th>
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Payment</th>
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Stripe Product Id</th>
-                                <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Stripe Price Id</th>
 
+                                <!--
+                                <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Stripe Price Id</th>
+                                -->
+                                  
                                 <!--
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Info</th>
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Full Description</th>
@@ -47,9 +50,18 @@
                               <td class="text-center"> {{ product.name }} </td>
                               <td class="text-center"> {{ product.price }} </td>
                               <td class="text-center"> {{ product.currency }} </td>
-                              <td class="text-center"> {{ product.payment }} </td>
+                              <td class="text-center"> 
+                                {% if product.payment == 0 %}
+                                  One-Time
+                                {% else %}
+                                  Monthly
+                                {% endif %}
+                              </td>
                               <td class="text-center"> {{ product.stripe_product_id }} </td>
+
+                              <!--
                               <td class="text-center"> {{ product.stripe_price_id }} </td>
+                              -->
 
                               <!--
                               <td class="text-center"> {{ product.info }} </td>
@@ -63,7 +75,7 @@
                                 </a>
 
                                 &nbsp;
-                                
+
                                 <a href="javascript:;" class="text-secondary font-weight-bold text-xs" data-toggle="tooltip" data-original-title="Edit user">
                                     <i id="delete-item" data-bs-toggle="modal" data-bs-target="#deleteModal"
                                        data-product-id="{{ product.id }}" class="text-danger fa fa-trash-o"></i>
@@ -120,7 +132,7 @@
               <label>Payment</label>
               <div class="mb-3">
                 <select name="payment" class="form-control" id="payment">
-                  <option value="0" selected="">One Time</option>
+                  <option value="0" selected="">One-Time</option>
                   <option value="1">Monthly Frequency</option>
                 </select>
               </div>
@@ -411,19 +423,11 @@
 
                     for ( var k in stripe_product_json ) {
 
-                      //console.log( k + ' - ' +  stripe_product_json[ k ] );
-
                       if ( document.getElementById( 'create_' + k ) ) {
-                       
-                        //console.log( ' > Elem [' + k + '] = ' + stripe_product_json[ k ] );
-                          
                         document.getElementById( 'create_' + k ).value = stripe_product_json[ k ];
-                        
                       } else {
-                        
                         console.log( ' > Element with ID [' + k + '] not found.' );
                       } 
-
                     }
 
                     //Object.keys(res).map((d) => {

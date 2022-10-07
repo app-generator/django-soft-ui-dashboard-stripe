@@ -140,10 +140,8 @@ def create_checkout_session(request):
         except Exception as e:
             return JsonResponse({'error': str(e)})
 
-
 def success(request):
     return render(request, "ecommerce/success.html")
-
 
 def cancelled(request):
     return render(request, "ecommerce/cancelled.html")
@@ -151,8 +149,10 @@ def cancelled(request):
 
 @csrf_exempt
 def stripe_webhook(request):
-    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    stripe.api_key  = settings.STRIPE_SECRET_KEY
     endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
+
     payload = request.body
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
     event = None
@@ -166,14 +166,19 @@ def stripe_webhook(request):
     except stripe.error.SignatureVerificationError as e:
         return HttpResponse(status=HTTPStatus.BAD_REQUEST)
 
+    # Payment -> oK
     if event['type'] == 'checkout.session.completed':
+
         sale_id = event.data.object.metadata.sale_id
 
         # Convert from unsuccessful payment to successful
         Sales.objects.filter(id=sale_id).update(is_successful=True, timestamp=datetime.datetime.now())
 
         print("Payment was successful.")
+
+    # Product created 
     if event['type'] == 'product.created':
+
         product = event.data.object
         product = Products.objects.create(
             stripe_product_id=product.stripe_id,
@@ -185,7 +190,10 @@ def stripe_webhook(request):
         )
 
         print(f'{product.name} created.')
+
+    # Product updated
     if event['type'] == 'product.updated':
+
         product = event.data.object
         if product.default_price is not None:
             price = stripe.Price.retrieve(
@@ -201,8 +209,7 @@ def stripe_webhook(request):
                 info=product.description,
             )
 
-    return HttpResponse(status=HTTPStatus.OK)
-
+    return HttpResponse(status=HTTPStatus.OK) 
 
 class ProductsView(views.View):
 
