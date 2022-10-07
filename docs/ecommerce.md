@@ -31,6 +31,7 @@ STRIPE_SECRET_KEY=<Insert-from-stripe-dashboard>
 - Login to Stripe: `stripe login`
 - Forward events to app webhook point:
   - `stripe listen --forward-to localhost:8000/webhook`
+  - copy generated signature to variable `STRIPE_ENDPOINT_SECRET` of `setting.py`
 
 ## How to use the feature
 
