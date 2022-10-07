@@ -25,6 +25,12 @@ STRIPE_SECRET_KEY=<Insert-from-stripe-dashboard>
 
 `/ecommerce/products/` : Shopping page
 
+## Manage Stripe Hooks (local env)
+
+- Install Stripe CLI: ` scoop install stripe`
+- Login to Stripe: `stripe login`
+- Forward events to app webhook point:
+  - `stripe listen --forward-to localhost:8000/webhook`
 
 ## How to use the feature
 
