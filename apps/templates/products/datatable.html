@@ -31,8 +31,12 @@
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Payment</th>
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Stripe Product Id</th>
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Stripe Price Id</th>
+
+                                <!--
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Info</th>
                                 <th class="text-center text-secondary text-xxs font-weight-bolder opacity-7">Full Description</th>
+                                -->
+
                                 <th class="text-secondary opacity-7"></th>
                             </tr>
                           </thead>
@@ -46,13 +50,20 @@
                               <td class="text-center"> {{ product.payment }} </td>
                               <td class="text-center"> {{ product.stripe_product_id }} </td>
                               <td class="text-center"> {{ product.stripe_price_id }} </td>
+
+                              <!--
                               <td class="text-center"> {{ product.info }} </td>
                               <td class="text-center"> {{ product.full_description }} </td>
+                              -->
+
                               <td class="align-middle">
                                 <a href="javascript:;" class="text-secondary font-weight-bold text-xs" data-toggle="tooltip" data-original-title="Edit user">
                                     <i id="edit-item" data-bs-toggle="modal" data-bs-target="#updateModal"
                                        data-product-id="{{ product.id }}" class="fa fa-edit"></i>
                                 </a>
+
+                                &nbsp;
+                                
                                 <a href="javascript:;" class="text-secondary font-weight-bold text-xs" data-toggle="tooltip" data-original-title="Edit user">
                                     <i id="delete-item" data-bs-toggle="modal" data-bs-target="#deleteModal"
                                        data-product-id="{{ product.id }}" class="text-danger fa fa-trash-o"></i>
@@ -175,25 +186,25 @@
 
               <label>Stripe Price Id</label>
               <div class="mb-3">
-                <input name="stripe_price_id" class="form-control" id="stripe_price_id"/>
+                <input name="stripe_price_id" class="form-control" id="create_stripe_price_id"/>
               </div>
               <span class="text-danger">{{ form.stripe_price_id.errors }}</span>
 
               <label>Name</label>
               <div class="mb-3">
-                <input name="name" class="form-control" id="name"/>
+                <input name="name" class="form-control" id="create_name"/>
               </div>
               <span class="text-danger">{{ form.name.errors }}</span>
 
               <label>Price</label>
               <div class="mb-3">
-                <input name="price" class="form-control" id="price"/>
+                <input name="price" class="form-control" id="create_price"/>
               </div>
               <span class="text-danger">{{ form.price.errors }}</span>
 
               <label>Currency</label>
               <div class="mb-3">
-                <select name="currency" class="form-control" id="currency">
+                <select name="currency" class="form-control" id="create_currency">
                   <option value="usd" selected="">USA Dollar</option>
                 </select>
               </div>
@@ -201,7 +212,7 @@
 
               <label>Payment</label>
               <div class="mb-3">
-                <select name="payment" class="form-control" id="payment">
+                <select name="payment" class="form-control" id="create_payment">
                   <option value="0" selected="">One Time</option>
                   <option value="1">Monthly Frequency</option>
                 </select>
@@ -210,13 +221,13 @@
 
               <label>Info</label>
               <div class="mb-3">
-                <textarea name="info" cols="40" rows="10" class="form-control" id="info"></textarea>
+                <textarea name="info" cols="40" rows="10" class="form-control" id="create_info"></textarea>
               </div>
               <span class="text-danger">{{ form.info.errors }}</span>
 
               <label>Full Description</label>
               <div class="mb-3">
-                <textarea name="full_description" cols="40" rows="10" class="form-control" id="full_description"></textarea>
+                <textarea name="full_description" cols="40" rows="10" class="form-control" id="create_full_description"></textarea>
               </div>
               <span class="text-danger">{{ form.full_description.errors }}</span>
         </div>
@@ -258,6 +269,9 @@
 
 {% block javascripts %}
     <script>
+
+        // fetched from Stripe
+        var stripe_product_json = null;
 
         const data = [
             {% for product in products %}
@@ -372,7 +386,10 @@
         }
 
         document.getElementById('stripe-id-btn').onclick = (e) => {
+
             const formData = new FormData(document.getElementById('create-form'))
+
+            
 
             fetch(`/ecommerce/products/stripe_data/${formData.get('stripe_product_id')}/`, {
                 method: 'GET',
@@ -387,9 +404,39 @@
                         return response.text()
                 })
                 .then((res) => {
-                    Object.keys(res).map((d) => {
-                        document.getElementById(d).value = res[d]
-                    })
+                    
+                    console.log( ' RES -> ' + res );
+                    
+                    stripe_product_json = JSON.parse(res);
+
+                    for ( var k in stripe_product_json ) {
+
+                      //console.log( k + ' - ' +  stripe_product_json[ k ] );
+
+                      if ( document.getElementById( 'create_' + k ) ) {
+                       
+                        //console.log( ' > Elem [' + k + '] = ' + stripe_product_json[ k ] );
+                          
+                        document.getElementById( 'create_' + k ).value = stripe_product_json[ k ];
+                        
+                      } else {
+                        
+                        console.log( ' > Element with ID [' + k + '] not found.' );
+                      } 
+
+                    }
+
+                    //Object.keys(res).map((d) => {
+                    //  
+                    //  if ( document.getElementById(d) ) {
+                    //    
+                    //    document.getElementById(d).value = res[d]
+                    //  } else {
+                    //    console.log( ' > Element with ID [' + d+ '] not found.' )
+                    //  }
+                    //    
+                    //})
+
                 })
                 .catch((err) => {
                     document.getElementById('stripe-id-error').textContent = err
